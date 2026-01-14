@@ -1,0 +1,844 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>귀여운 발표 타이머</title>
+  <style>
+    :root {
+      --bg1: #fff7ed;
+      /* warm cream */
+      --bg2: #ecfeff;
+      /* soft mint */
+      --card: #ffffffcc;
+      --cardBorder: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --accent: #fb7185;
+      /* coral-pink */
+      --accent2: #60a5fa;
+      /* sky */
+      --shadow: 0 18px 45px rgba(31, 41, 55, .12);
+      --radius: 26px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", Arial, "Helvetica Neue", Helvetica, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--sans);
+      color: var(--text);
+      background:
+        radial-gradient(900px 500px at 10% 10%, #ffe4e6, transparent 55%),
+        radial-gradient(850px 520px at 90% 20%, #dbeafe, transparent 55%),
+        radial-gradient(900px 600px at 50% 100%, #dcfce7, transparent 60%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      overflow-x: hidden;
+    }
+
+    /* cute doodles */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .28;
+      background-image:
+        radial-gradient(circle at 18px 18px, rgba(251, 113, 133, .35) 2px, transparent 3px),
+        radial-gradient(circle at 12px 12px, rgba(96, 165, 250, .30) 2px, transparent 3px),
+        radial-gradient(circle at 22px 28px, rgba(34, 197, 94, .25) 2px, transparent 3px);
+      background-size: 64px 64px;
+    }
+
+    .wrap {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 26px 18px 34px;
+    }
+
+    header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      margin: 6px 0 16px;
+    }
+
+    .title h1 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: .2px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .title h1 .emoji {
+      display: inline-flex;
+      width: 38px;
+      height: 38px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: 0 12px 30px rgba(31, 41, 55, .10);
+      border: 2px solid #fff;
+    }
+
+    .title p {
+      margin: 6px 0 0;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      background: #ffffffcc;
+      border: 2px solid #fff;
+      box-shadow: 0 12px 30px rgba(31, 41, 55, .10);
+      user-select: none;
+      font-weight: 800;
+      font-size: 12px;
+      color: #374151;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--accent2);
+      box-shadow: 0 0 0 6px rgba(96, 165, 250, .22);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 860px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      border-radius: var(--radius);
+      background: var(--card);
+      border: 2px solid var(--cardBorder);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .inner {
+      padding: 18px;
+    }
+
+    .timerFace {
+      border-radius: 22px;
+      padding: 18px 16px;
+      background: #ffffffd9;
+      border: 2px dashed rgba(251, 113, 133, .35);
+      box-shadow: inset 0 0 0 1px rgba(31, 41, 55, .05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .time {
+      font-family: var(--mono);
+      font-weight: 950;
+      font-size: clamp(56px, 7.5vw, 96px);
+      letter-spacing: 1px;
+      line-height: 1;
+      color: #111827;
+    }
+
+    .subline {
+      margin-top: 12px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .subline b {
+      color: #111827;
+      font-weight: 900;
+    }
+
+    .progress {
+      margin-top: 14px;
+      height: 12px;
+      border-radius: 999px;
+      background: rgba(31, 41, 55, .06);
+      border: 2px solid rgba(255, 255, 255, .9);
+      overflow: hidden;
+    }
+
+    .bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, rgba(251, 113, 133, .95), rgba(96, 165, 250, .9));
+      border-radius: 999px;
+      transition: width 200ms linear;
+    }
+
+    .controls {
+      margin-top: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    button {
+      appearance: none;
+      border: 2px solid #fff;
+      background: #ffffffcc;
+      color: #111827;
+      padding: 12px 13px;
+      border-radius: 16px;
+      font-weight: 900;
+      letter-spacing: .1px;
+      cursor: pointer;
+      transition: transform .08s ease, filter .2s ease;
+      user-select: none;
+      box-shadow: 0 12px 26px rgba(31, 41, 55, .10);
+    }
+
+    button:hover {
+      filter: brightness(1.03);
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    .primary {
+      background: linear-gradient(135deg, rgba(251, 113, 133, .35), rgba(96, 165, 250, .22));
+      border-color: #fff;
+    }
+
+    .danger {
+      background: rgba(251, 113, 133, .14);
+    }
+
+    .mini {
+      padding: 10px 12px;
+      font-size: 13px;
+      border-radius: 14px;
+    }
+
+    .panelTitle {
+      font-size: 14px;
+      margin: 0 0 10px;
+      color: #374151;
+      letter-spacing: .2px;
+      font-weight: 950;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panelTitle .tag {
+      font-size: 12px;
+      font-weight: 900;
+      color: #111827;
+      background: rgba(34, 197, 94, .15);
+      border: 2px solid #fff;
+      padding: 4px 8px;
+      border-radius: 999px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .row3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 520px) {
+      .row {
+        grid-template-columns: 1fr;
+      }
+
+      .row3 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      color: #374151;
+      margin-bottom: 8px;
+      font-weight: 950;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 12px 12px;
+      border-radius: 16px;
+      border: 2px solid #fff;
+      background: #ffffffd9;
+      color: #111827;
+      outline: none;
+      box-shadow: 0 12px 26px rgba(31, 41, 55, .08);
+    }
+
+    input:focus,
+    select:focus {
+      border-color: rgba(96, 165, 250, .9);
+    }
+
+    .hint {
+      font-size: 12px;
+      color: #6b7280;
+      line-height: 1.5;
+      margin-top: 6px;
+      font-weight: 700;
+    }
+
+    .footerNote {
+      margin-top: 14px;
+      color: #6b7280;
+      font-size: 12px;
+      line-height: 1.6;
+      font-weight: 700;
+    }
+
+    .kbd {
+      font-family: var(--mono);
+      font-weight: 950;
+      background: rgba(31, 41, 55, .06);
+      border: 2px solid #fff;
+      padding: 2px 6px;
+      border-radius: 10px;
+      margin: 0 2px;
+      color: #111827;
+      font-size: 12px;
+    }
+
+    .flash {
+      animation: flash 260ms steps(2) infinite;
+    }
+
+    @keyframes flash {
+      0% {
+        filter: brightness(1);
+      }
+
+      50% {
+        filter: brightness(1.12);
+      }
+
+      100% {
+        filter: brightness(1);
+      }
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 20px;
+      transform: translateX(-50%);
+      background: rgba(255, 255, 255, .92);
+      border: 2px solid #fff;
+      color: #111827;
+      padding: 10px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      box-shadow: 0 18px 45px rgba(31, 41, 55, .12);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s ease, transform .25s ease;
+      max-width: min(90vw, 680px);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-weight: 900;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(-6px);
+    }
+
+    .home-btn {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      background: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      text-decoration: none;
+      color: #5D4037;
+      font-family: var(--sans);
+      box-shadow: 0 5px 0 rgba(0, 0, 0, 0.1);
+      z-index: 2000;
+      border: 2px solid #FF8FB1;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .home-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 0 rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+
+<body>
+  <a href="index.html" class="home-btn">🏠 홈으로</a>
+
+  <div class="wrap">
+    <header>
+      <div class="title">
+        <h1><span class="emoji">⏱️</span>귀여운 발표 타이머</h1>
+        <p>초등 수업 발표용 · 분/초 설정 · 단축키 지원</p>
+      </div>
+      <div class="chip" title="상태">
+        <div class="dot" id="statusDot"></div>
+        <span id="statusText">준비!</span>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- Left -->
+      <section class="card">
+        <div class="inner">
+          <div class="timerFace" id="timerFace">
+            <div class="time" id="timeText">05:00</div>
+          </div>
+
+          <div class="subline">
+            <div>남은 시간: <b id="remainingLabel">5분 0초</b></div>
+            <div>오늘도 파이팅! 🌈</div>
+          </div>
+
+          <div class="progress" aria-label="progress">
+            <div class="bar" id="bar"></div>
+          </div>
+
+          <div class="controls">
+            <button class="primary" id="startPauseBtn">시작</button>
+            <button id="resetBtn">리셋</button>
+            <button class="mini" id="minus10Btn">-10초</button>
+            <button class="mini" id="plus10Btn">+10초</button>
+            <button class="mini" id="fullscreenBtn">전체화면</button>
+            <button class="mini danger" id="stopAlarmBtn" title="알림이 울릴 때 정지">알림 끄기</button>
+          </div>
+
+          <div class="footerNote">
+            단축키: <span class="kbd">Space</span> 시작/일시정지,
+            <span class="kbd">R</span> 리셋,
+            <span class="kbd">↑</span> +10초,
+            <span class="kbd">↓</span> -10초,
+            <span class="kbd">F</span> 전체화면
+          </div>
+        </div>
+      </section>
+
+      <!-- Right -->
+      <aside class="card">
+        <div class="inner">
+          <div class="panelTitle">설정 <span class="tag">쉬워요!</span></div>
+
+          <div class="row">
+            <div>
+              <label for="minutes">분 (0~999)</label>
+              <input id="minutes" type="number" min="0" max="999" value="5" />
+            </div>
+            <div>
+              <label for="seconds">초 (0~59)</label>
+              <input id="seconds" type="number" min="0" max="59" value="0" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label for="mode">표시 크기</label>
+              <select id="mode">
+                <option value="mmss" selected>기본(MM:SS)</option>
+                <option value="big">큰 숫자(멀리서 보기)</option>
+              </select>
+              <div class="hint">발표할 때 아이들이 멀리서도 잘 보여요 😊</div>
+            </div>
+            <div>
+              <label for="endSound">종료 알림</label>
+              <select id="endSound">
+                <option value="on" selected>켜기 🔔</option>
+                <option value="off">끄기 🤫</option>
+              </select>
+              <div class="hint">조용한 수업이면 끄기로!</div>
+            </div>
+          </div>
+
+          <div class="row3">
+            <button class="mini" id="applyBtn">시간 적용</button>
+            <button class="mini" id="quick3">3분</button>
+            <button class="mini" id="quick5">5분</button>
+          </div>
+          <div class="row3">
+            <button class="mini" id="quick7">7분</button>
+            <button class="mini" id="quick10">10분</button>
+            <button class="mini" id="quick15">15분</button>
+          </div>
+
+          <div class="hint" style="margin-top:10px;">
+            🔊 알림음은 브라우저 규칙 때문에, 버튼/키를 한 번 누른 뒤부터 잘 나와요.
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">알림</div>
+
+  <script>
+    const el = (id) => document.getElementById(id);
+
+    const timeText = el("timeText");
+    const remainingLabel = el("remainingLabel");
+    const bar = el("bar");
+
+    const minutesInput = el("minutes");
+    const secondsInput = el("seconds");
+    const modeSelect = el("mode");
+    const endSoundSelect = el("endSound");
+
+    const startPauseBtn = el("startPauseBtn");
+    const resetBtn = el("resetBtn");
+    const applyBtn = el("applyBtn");
+
+    const plus10Btn = el("plus10Btn");
+    const minus10Btn = el("minus10Btn");
+
+    const quick3 = el("quick3");
+    const quick5 = el("quick5");
+    const quick7 = el("quick7");
+    const quick10 = el("quick10");
+    const quick15 = el("quick15");
+
+    const fullscreenBtn = el("fullscreenBtn");
+    const stopAlarmBtn = el("stopAlarmBtn");
+
+    const statusDot = el("statusDot");
+    const statusText = el("statusText");
+    const timerFace = el("timerFace");
+    const toast = el("toast");
+
+    // state
+    let totalMs = 5 * 60 * 1000;
+    let remainingMs = totalMs;
+    let running = false;
+    let tickHandle = null;
+    let endTime = null;
+
+    // alarm
+    let alarmInterval = null;
+
+    // WebAudio (simple beep)
+    let audioUnlocked = false;
+    let audioCtx = null;
+
+    function unlockAudio() {
+      if (audioUnlocked) return;
+      audioUnlocked = true;
+      try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { }
+    }
+
+    function beep(duration = 0.10, freq = 880) {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+
+      gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.12, audioCtx.currentTime + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration + 0.02);
+    }
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add("show");
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => toast.classList.remove("show"), 1600);
+    }
+
+    function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
+
+    function formatMMSS(ms) {
+      const totalSec = Math.ceil(ms / 1000);
+      const m = Math.floor(totalSec / 60);
+      const s = totalSec % 60;
+      return String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+    }
+
+    function humanLabel(ms) {
+      const totalSec = Math.ceil(ms / 1000);
+      const m = Math.floor(totalSec / 60);
+      const s = totalSec % 60;
+      return `${m}분 ${s}초`;
+    }
+
+    function setStatus(state) {
+      if (state === "running") {
+        statusText.textContent = "진행 중 🏃";
+        statusDot.style.background = "#22c55e";
+      } else if (state === "paused") {
+        statusText.textContent = "잠깐 멈춤 ✋";
+        statusDot.style.background = "#f59e0b";
+      } else if (state === "done") {
+        statusText.textContent = "끝! 🎉";
+        statusDot.style.background = "#fb7185";
+      } else {
+        statusText.textContent = "준비! 😊";
+        statusDot.style.background = "#60a5fa";
+      }
+    }
+
+    function updateUI() {
+      const mode = modeSelect.value;
+      timeText.style.fontSize = (mode === "big")
+        ? "clamp(76px, 10vw, 130px)"
+        : "clamp(56px, 7.5vw, 96px)";
+
+      timeText.textContent = formatMMSS(remainingMs);
+      remainingLabel.textContent = humanLabel(remainingMs);
+
+      const pct = totalMs <= 0 ? 0 : (remainingMs / totalMs) * 100;
+      bar.style.width = clamp(pct, 0, 100) + "%";
+
+      startPauseBtn.textContent = running ? "일시정지" : "시작";
+    }
+
+    function applyFromInputs() {
+      const m = clamp(parseInt(minutesInput.value || "0", 10), 0, 999);
+      const s = clamp(parseInt(secondsInput.value || "0", 10), 0, 59);
+
+      totalMs = (m * 60 + s) * 1000;
+      remainingMs = totalMs;
+
+      stop();
+      setStatus("idle");
+      timerFace.classList.remove("flash");
+      updateUI();
+
+      showToast(`시간 적용: ${m}분 ${s}초`);
+    }
+
+    function start() {
+      if (totalMs <= 0) {
+        showToast("시간을 1초 이상으로 설정해줘요!");
+        return;
+      }
+      if (running) return;
+
+      running = true;
+      setStatus("running");
+      timerFace.classList.remove("flash");
+      clearAlarm();
+
+      endTime = Date.now() + remainingMs;
+
+      tickHandle = setInterval(() => {
+        const now = Date.now();
+        remainingMs = Math.max(0, endTime - now);
+
+        if (remainingMs <= 0) {
+          remainingMs = 0;
+          updateUI();
+          finish();
+          return;
+        }
+        updateUI();
+      }, 100);
+
+      updateUI();
+    }
+
+    function pause() {
+      if (!running) return;
+      running = false;
+      setStatus("paused");
+      clearInterval(tickHandle);
+      tickHandle = null;
+      endTime = null;
+      updateUI();
+    }
+
+    function stop() {
+      running = false;
+      clearInterval(tickHandle);
+      tickHandle = null;
+      endTime = null;
+      clearAlarm();
+      timerFace.classList.remove("flash");
+      updateUI();
+    }
+
+    function reset() {
+      stop();
+      remainingMs = totalMs;
+      setStatus("idle");
+      updateUI();
+      showToast("리셋 완료!");
+    }
+
+    function finish() {
+      pause();
+      setStatus("done");
+      timerFace.classList.add("flash");
+      showToast("시간 끝! 발표 잘했어요! 🎉");
+
+      if (endSoundSelect.value === "off") return;
+      if (!audioCtx) return;
+
+      let i = 0;
+      alarmInterval = setInterval(() => {
+        beep(0.10, i % 2 === 0 ? 880 : 740);
+        i++;
+      }, 320);
+    }
+
+    function clearAlarm() {
+      if (alarmInterval) {
+        clearInterval(alarmInterval);
+        alarmInterval = null;
+      }
+    }
+
+    function addSeconds(delta) {
+      const maxMs = 999 * 60 * 1000 + 59 * 1000;
+      remainingMs = clamp(remainingMs + delta * 1000, 0, maxMs);
+
+      if (running && endTime) {
+        endTime = Date.now() + remainingMs;
+      }
+
+      if (remainingMs > 0) {
+        timerFace.classList.remove("flash");
+        clearAlarm();
+        setStatus(running ? "running" : "paused");
+      }
+      updateUI();
+    }
+
+    async function toggleFullscreen() {
+      const doc = document;
+      const docEl = document.documentElement;
+      try {
+        if (!doc.fullscreenElement) {
+          await docEl.requestFullscreen();
+          showToast("전체화면 켰어요!");
+        } else {
+          await doc.exitFullscreen();
+          showToast("전체화면 해제!");
+        }
+      } catch (e) {
+        showToast("전체화면이 안 될 수도 있어요 😅");
+      }
+    }
+
+    // unlock audio on first interaction
+    function onUserInteract() {
+      unlockAudio();
+      if (audioCtx && audioCtx.state === "suspended") {
+        audioCtx.resume().catch(() => { });
+      }
+      window.removeEventListener("pointerdown", onUserInteract);
+      window.removeEventListener("keydown", onUserInteract);
+    }
+    window.addEventListener("pointerdown", onUserInteract, { once: true });
+    window.addEventListener("keydown", onUserInteract, { once: true });
+
+    // events
+    startPauseBtn.addEventListener("click", () => {
+      unlockAudio();
+      if (!running) start(); else pause();
+    });
+
+    resetBtn.addEventListener("click", reset);
+    applyBtn.addEventListener("click", applyFromInputs);
+
+    plus10Btn.addEventListener("click", () => addSeconds(+10));
+    minus10Btn.addEventListener("click", () => addSeconds(-10));
+
+    quick3.addEventListener("click", () => { minutesInput.value = 3; secondsInput.value = 0; applyFromInputs(); });
+    quick5.addEventListener("click", () => { minutesInput.value = 5; secondsInput.value = 0; applyFromInputs(); });
+    quick7.addEventListener("click", () => { minutesInput.value = 7; secondsInput.value = 0; applyFromInputs(); });
+    quick10.addEventListener("click", () => { minutesInput.value = 10; secondsInput.value = 0; applyFromInputs(); });
+    quick15.addEventListener("click", () => { minutesInput.value = 15; secondsInput.value = 0; applyFromInputs(); });
+
+    fullscreenBtn.addEventListener("click", toggleFullscreen);
+
+    stopAlarmBtn.addEventListener("click", () => {
+      timerFace.classList.remove("flash");
+      clearAlarm();
+      showToast("알림을 껐어요 🤫");
+    });
+
+    modeSelect.addEventListener("change", updateUI);
+
+    // shortcuts
+    window.addEventListener("keydown", (e) => {
+      const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : "";
+      const typing = tag === "input" || tag === "select" || tag === "textarea";
+      if (typing) return;
+
+      if (e.code === "Space") {
+        e.preventDefault();
+        unlockAudio();
+        if (!running) start(); else pause();
+      } else if (e.key.toLowerCase() === "r") {
+        reset();
+      } else if (e.key === "ArrowUp") {
+        addSeconds(+10);
+      } else if (e.key === "ArrowDown") {
+        addSeconds(-10);
+      } else if (e.key.toLowerCase() === "f") {
+        toggleFullscreen();
+      }
+    });
+
+    // init
+    setStatus("idle");
+    updateUI();
+  </script>
+</body>
+
+</html>

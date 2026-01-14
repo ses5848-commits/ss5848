@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <title>발표 학생 뽑기</title>
+
+  <!-- Google Font : Fredoka -->
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      background: linear-gradient(135deg, #ffe8f0, #e8f3ff);
+      font-family: 'Fredoka', sans-serif;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .card {
+      background: white;
+      border-radius: 30px;
+      padding: 50px 60px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+      text-align: center;
+    }
+
+    .emoji {
+      font-size: 50px;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      font-size: 36px;
+      margin-bottom: 30px;
+      color: #333;
+    }
+
+    button {
+      background: #ff8fab;
+      border: none;
+      border-radius: 50px;
+      padding: 18px 40px;
+      font-size: 26px;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 8px 0 #e46c8c;
+      transition: all 0.2s ease;
+    }
+
+    button:hover {
+      background: #ff6f9f;
+    }
+
+
+    button:active {
+      transform: translateY(5px);
+      box-shadow: 0 3px 0 #e46c8c;
+    }
+
+    .home-btn {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: white;
+      padding: 10px 20px;
+      border-radius: 20px;
+      text-decoration: none;
+      color: #5D4037;
+      font-family: 'Fredoka', sans-serif;
+      box-shadow: 0 5px 0 rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+      border: 2px solid #FF8FB1;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    .home-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 0 rgba(0, 0, 0, 0.1);
+    }
+
+
+    #result {
+      margin-top: 35px;
+      font-size: 40px;
+      color: #4a4a4a;
+    }
+  </style>
+</head>
+
+<body>
+  <a href="index.html" class="home-btn">🏠 홈으로</a>
+
+
+  <div class="card">
+    <div class="emoji">🎤✨</div>
+    <h1>오늘 발표할 학생은?</h1>
+    <button onclick="pickStudent()">발표 학생 뽑기!</button>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    function pickStudent() {
+      const number = Math.floor(Math.random() * 25) + 1;
+      document.getElementById("result").innerText =
+        number + "번 학생이에요 💖";
+    }
+  </script>
+
+</body>
+
+</html>

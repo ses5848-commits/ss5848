@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>수업 집중! 캡슐 뽑기</title>
+    <style>
+        body {
+            background-color: #FFF9C4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Jua', sans-serif;
+            overflow: hidden;
+        }
+
+        #machine {
+            width: 300px;
+            height: 400px;
+            background: #FF8A80;
+            border: 10px solid #D32F2F;
+            border-radius: 50px 50px 20px 20px;
+            position: relative;
+            box-shadow: 0 10px 0 #B71C1C;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        #machine:active {
+            transform: scale(0.95);
+        }
+
+        #glass {
+            width: 240px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 40px;
+            margin: 20px auto;
+            position: relative;
+            overflow: hidden;
+            border: 5px solid #FF5252;
+        }
+
+        .capsule {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            position: absolute;
+        }
+
+        #handle {
+            width: 80px;
+            height: 80px;
+            background: #EEEEEE;
+            border: 5px solid #9E9E9E;
+            border-radius: 50%;
+            margin: 10px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+        }
+
+        #result-display {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            border: 8px solid #4CAF50;
+            text-align: center;
+            z-index: 100;
+            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #result-display.show {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        h1 {
+            color: #D32F2F;
+            text-shadow: 2px 2px white;
+        }
+
+        .btn-start {
+            padding: 20px 40px;
+            font-size: 24px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+        }
+
+        .home-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            color: #5D4037;
+            font-family: 'Jua', sans-serif;
+            box-shadow: 0 5px 0 rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            border: 2px solid #FF8FB1;
+            font-weight: bold;
+        }
+
+        .home-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 0 rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+    <a href="index.html" class="home-btn">🏠 홈으로</a>
+
+
+    <button class="btn-start" id="startBtn">🎮 집중 모드 시작!</button>
+    <h1 id="titleText">기계를 터치해 캡슐을 뽑아요!</h1>
+
+    <div id="machine" onclick="drawCapsule()">
+        <div id="glass"></div>
+        <div id="handle">↻</div>
+        <div style="text-align: center; color: white; font-weight: bold; margin-top: 10px;">PUSH</div>
+    </div>
+
+    <div id="overlay"></div>
+    <div id="result-display" id="resultCard">
+        <h2 style="color: #FF5252;">✨ 오늘의 미션 ✨</h2>
+        <h1 id="mission-text">내용</h1>
+        <button onclick="closeResult()" style="margin-top:20px; padding:10px 20px;">확인!</button>
+    </div>
+
+    <script>
+        const glass = document.getElementById('glass');
+        const resultDisplay = document.getElementById('result-display');
+        const missionText = document.getElementById('mission-text');
+        const overlay = document.getElementById('overlay');
+
+        // 미션 리스트 (원하는 대로 수정하세요!)
+        const missions = [
+            "🙌 기지개 크게 켜기!",
+            "🤫 10초간 무궁화 꽃이 피었습니다!",
+            "👏 옆 친구랑 하이파이브!",
+            "👀 선생님과 눈맞춤 3초!",
+            "🍬 깜짝 비타민 당첨자 뽑기!",
+            "⭐ 가장 바른 자세로 앉기!"
+        ];
+
+        // Web Audio API 설정 (귀여운 효과음 생성)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'spin') { // 태엽 감는 소리
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+            } else if (type === 'pop') { // 팡! 터지는 소리
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            }
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+
+        // 초기 캡슐 채우기
+        for (let i = 0; i < 15; i++) {
+            const cap = document.createElement('div');
+            cap.className = 'capsule';
+            cap.style.left = Math.random() * 200 + 'px';
+            cap.style.top = Math.random() * 160 + 'px';
+            cap.style.backgroundColor = `hsl(${Math.random() * 360}, 70%, 70%)`;
+            cap.style.border = "3px solid white";
+            glass.appendChild(cap);
+        }
+
+        function drawCapsule() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            playSound('spin');
+            document.getElementById('machine').style.transform = "rotate(5deg)";
+
+            setTimeout(() => {
+                document.getElementById('machine').style.transform = "rotate(-5deg)";
+            }, 100);
+
+            setTimeout(() => {
+                document.getElementById('machine').style.transform = "rotate(0deg)";
+                showResult();
+            }, 500);
+        }
+
+        function showResult() {
+            playSound('pop');
+            const randomMission = missions[Math.floor(Math.random() * missions.length)];
+            missionText.innerText = randomMission;
+            resultDisplay.classList.add('show');
+            overlay.style.display = 'block';
+        }
+
+        function closeResult() {
+            resultDisplay.classList.remove('show');
+            overlay.style.display = 'none';
+        }
+
+        document.getElementById('startBtn').onclick = function () {
+            audioCtx.resume();
+            this.style.display = 'none';
+        };
+    </script>
+</body>
+
+</html>
